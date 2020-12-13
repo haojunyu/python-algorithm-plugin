@@ -1,11 +1,14 @@
-FROM centos/python-36-centos7
-USER root
-RUN yum install -y libXrender-0.9.10-1.el7.x86_64
+FROM python:3.6-slim
+RUN sed -i "s/deb.debian.org/mirrors.aliyun.com/g" /etc/apt/sources.list  \
+    && apt update \
+    && apt install -y --no-install-recommends wget libgl1-mesa-glx libxrender1  libglib2.0-dev\
+    && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 COPY . .
 WORKDIR /app/src
-RUN pip install -i https://pypi.tuna.tsinghua.edu.cn/simple -r requirements.txt \
-    && pip install -i https://pypi.tuna.tsinghua.edu.cn/simple torch torchvision \
-    && wget -P /opt/app-root/src/.cache/torch/checkpoints/ https://download.pytorch.org/models/vgg16-397923af.pth \
-    && wget -P /app/model/ -c https://pjreddie.com/media/files/yolov3.weights
-CMD ["bash", "./bin/run.sh", "image"]
+RUN pip install --upgrade pip -i https://mirrors.aliyun.com/pypi/simple \
+    && pip install -i  https://mirrors.aliyun.com/pypi/simple/ -r requirements.txt \
+    && pip install -i  https://mirrors.aliyun.com/pypi/simple/ torch torchvision \
+    && mkdir -p /root/.cache/torch/hub/checkpoints \
+    && ln -s /app/model/vgg16-397923af.pth /root/.cache/torch/hub/checkpoints/vgg16-397923af.pth 
+CMD ["bash", "../bin/run.sh", "image"]
